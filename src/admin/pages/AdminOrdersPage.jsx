@@ -9,10 +9,23 @@ const AdminOrdersPage = () => {
 
   const fetchOrders = async () => {
     try {
-      const res = await axios.get('/api/orders');
-      setOrders(res.data);
+      const token = localStorage.getItem('token');
+      const res = await axios.get('/api/admin/orders', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const data = res.data;
+
+      if (!Array.isArray(data)) {
+        console.error('Expected array, got:', data);
+        setOrders([]);
+        return;
+      }
+
+      setOrders(data);
     } catch (err) {
-      console.error(err);
+      console.error('Failed to fetch orders:', err);
+      setOrders([]);
     }
   };
 
@@ -22,34 +35,44 @@ const AdminOrdersPage = () => {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`/api/orders/${id}`);
+      const token = localStorage.getItem('token');
+      await axios.delete(`/api/admin/orders/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
       setPopupMessage('Order deleted successfully');
       setShowPopup(true);
       fetchOrders();
       setTimeout(() => setShowPopup(false), 2000);
     } catch (err) {
-      console.error(err);
+      console.error('Delete failed:', err);
     }
   };
 
   const handleComplete = async (id) => {
     try {
-      await axios.patch(`/api/orders/${id}`);
+      const token = localStorage.getItem('token');
+      await axios.patch(`/api/admin/orders/${id}`, {}, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
       setPopupMessage('Order marked as complete');
       setShowPopup(true);
       fetchOrders();
       setTimeout(() => setShowPopup(false), 2000);
     } catch (err) {
-      console.error(err);
+      console.error('Mark complete failed:', err);
     }
   };
 
-  const filteredOrders = orders.filter((order) => {
-    if (filter === 'all') return true;
-    if (filter === 'completed') return order.completed;
-    if (filter === 'pending') return !order.completed;
-    return true;
-  });
+  const filteredOrders = Array.isArray(orders)
+    ? orders.filter((order) => {
+        if (filter === 'all') return true;
+        if (filter === 'completed') return order.completed;
+        if (filter === 'pending') return !order.completed;
+        return true;
+      })
+    : [];
 
   return (
     <div className="flex">
@@ -92,12 +115,14 @@ const AdminOrdersPage = () => {
           </thead>
           <tbody>
             {filteredOrders.map((order) => (
-              <tr key={order.id}>
+              <tr key={order._id}>
                 <td className="border px-4 py-2">{order.name}</td>
                 <td className="border px-4 py-2">{order.phone}</td>
                 <td className="border px-4 py-2">{order.address}</td>
                 <td className="border px-4 py-2">{order.product}</td>
-                <td className="border px-4 py-2">{order.width} x {order.height}</td>
+                <td className="border px-4 py-2">
+                  {order.width} x {order.height}
+                </td>
                 <td className="border px-4 py-2">{order.notes}</td>
                 <td className="border px-4 py-2">
                   {order.completed ? '✅' : '❌'}
@@ -106,14 +131,14 @@ const AdminOrdersPage = () => {
                   <div className="flex space-x-2">
                     {!order.completed && (
                       <button
-                        onClick={() => handleComplete(order.id)}
+                        onClick={() => handleComplete(order._id)}
                         className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded"
                       >
                         Complete
                       </button>
                     )}
                     <button
-                      onClick={() => handleDelete(order.id)}
+                      onClick={() => handleDelete(order._id)}
                       className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded"
                     >
                       Delete

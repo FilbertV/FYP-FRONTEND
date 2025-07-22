@@ -14,15 +14,30 @@ const AdminDashboard = () => {
 
   const fetchData = async () => {
     try {
-      const prodRes = await axios.get("/api/products");
-      const orderRes = await axios.get("/api/orders");
-      setProducts(prodRes.data);
-      setOrders(orderRes.data);
+      const token = localStorage.getItem("token");
 
-      const lowStockItems = prodRes.data.filter((item) => item.stock < 10);
+      const [prodRes, orderRes] = await Promise.all([
+        axios.get("/api/admin/products", {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        axios.get("/api/admin/orders", {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+      ]);
+
+      const prodData = Array.isArray(prodRes.data) ? prodRes.data : prodRes.data?.data || [];
+      const orderData = Array.isArray(orderRes.data) ? orderRes.data : orderRes.data?.data || [];
+
+      setProducts(prodData);
+      setOrders(orderData);
+
+      const lowStockItems = prodData.filter((item) => item.stock < 10);
       setLowStock(lowStockItems);
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
+      setProducts([]);
+      setOrders([]);
+      setLowStock([]);
     }
   };
 
@@ -115,19 +130,23 @@ const AdminDashboard = () => {
               </tr>
             </thead>
             <tbody>
-              {[...orders].reverse().slice(0, 5).map((order) => (
-                <tr key={order._id} className="border-b">
-                  <td className="py-2 pr-4">{order.name}</td>
-                  <td className="py-2 pr-4">{order.product}</td>
-                  <td className="py-2 pr-4">
-                    {order.width}cm x {order.height}cm
-                  </td>
-                  <td className="py-2 pr-4">
-                    {new Date(order.createdAt).toLocaleDateString()}
-                  </td>
-                </tr>
-              ))}
-              {orders.length === 0 && (
+              {orders.length > 0 ? (
+                [...orders]
+                  .reverse()
+                  .slice(0, 5)
+                  .map((order) => (
+                    <tr key={order._id} className="border-b">
+                      <td className="py-2 pr-4">{order.name}</td>
+                      <td className="py-2 pr-4">{order.product}</td>
+                      <td className="py-2 pr-4">
+                        {order.width}cm x {order.height}cm
+                      </td>
+                      <td className="py-2 pr-4">
+                        {new Date(order.createdAt).toLocaleDateString()}
+                      </td>
+                    </tr>
+                  ))
+              ) : (
                 <tr>
                   <td colSpan={4} className="py-4 text-center text-gray-400">
                     No orders found.

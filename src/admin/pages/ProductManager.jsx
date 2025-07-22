@@ -12,13 +12,20 @@ const ProductManager = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-  useEffect(() => {
-    fetchProducts();
-  }, []);
-
   const fetchProducts = async () => {
     try {
-      const { data } = await axios.get('/api/products');
+      const token = localStorage.getItem('token');
+
+      const { data } = await axios.get('/api/admin/products', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!Array.isArray(data)) {
+        console.error('Unexpected response:', data);
+        return;
+      }
 
       const merged = data.map((prod) => {
         const match = productList.find(
@@ -27,7 +34,6 @@ const ProductManager = () => {
 
         let image = match?.image || 'curtain.webp';
 
-        // Ensure curtain has the correct fallback image
         if (prod.name.trim().toLowerCase() === 'curtains') {
           image = 'curtain.webp';
         }
@@ -44,9 +50,20 @@ const ProductManager = () => {
     }
   };
 
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`/api/products/${id}`);
+      const token = localStorage.getItem('token');
+
+      await axios.delete(`/api/admin/products/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
       setProducts((prev) => prev.filter((p) => p._id !== id));
       setShowDeleteModal(false);
     } catch (err) {
@@ -56,9 +73,22 @@ const ProductManager = () => {
 
   const handleEditSubmit = async (updatedProduct) => {
     try {
-      await axios.put(`/api/products/${updatedProduct._id}`, updatedProduct);
+      const token = localStorage.getItem('token');
+
+      await axios.put(
+        `/api/admin/products/${updatedProduct._id}`,
+        updatedProduct,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
       setProducts((prev) =>
-        prev.map((p) => (p._id === updatedProduct._id ? { ...p, ...updatedProduct } : p))
+        prev.map((p) =>
+          p._id === updatedProduct._id ? { ...p, ...updatedProduct } : p
+        )
       );
       setShowEditModal(false);
     } catch (err) {
