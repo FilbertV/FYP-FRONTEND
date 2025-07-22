@@ -12,20 +12,22 @@ const InventoryPage = () => {
 
   const fetchProducts = async () => {
     try {
-      const token = localStorage.getItem("token"); // 🔐 Get token from localStorage
+      const token = localStorage.getItem("token");
       const response = await axios.get("/api/admin/products", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
-      if (!Array.isArray(response.data)) {
-        console.error("Invalid response:", response.data);
+      const data = response.data;
+
+      if (!Array.isArray(data)) {
+        console.error("Expected array, got:", data);
         toast.error("Failed to load products (Invalid response)");
         return;
       }
 
-      setProducts(response.data);
+      setProducts(data);
     } catch (error) {
       console.error("Error fetching products:", error);
       toast.error("Failed to fetch products");

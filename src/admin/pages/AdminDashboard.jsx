@@ -25,8 +25,8 @@ const AdminDashboard = () => {
         }),
       ]);
 
-      const prodData = Array.isArray(prodRes.data) ? prodRes.data : prodRes.data?.data || [];
-      const orderData = Array.isArray(orderRes.data) ? orderRes.data : orderRes.data?.data || [];
+      const prodData = Array.isArray(prodRes.data) ? prodRes.data : [];
+      const orderData = Array.isArray(orderRes.data) ? orderRes.data : [];
 
       setProducts(prodData);
       setOrders(orderData);
@@ -103,7 +103,7 @@ const AdminDashboard = () => {
               </thead>
               <tbody>
                 {lowStock.map((item) => (
-                  <tr key={item._id} className="border-b">
+                  <tr key={item.id} className="border-b">
                     <td className="py-2 pr-4">{item.name}</td>
                     <td className="py-2 pr-4 text-red-500 font-medium">
                       {item.stock}
@@ -135,14 +135,14 @@ const AdminDashboard = () => {
                   .reverse()
                   .slice(0, 5)
                   .map((order) => (
-                    <tr key={order._id} className="border-b">
+                    <tr key={order.id} className="border-b">
                       <td className="py-2 pr-4">{order.name}</td>
                       <td className="py-2 pr-4">{order.product}</td>
                       <td className="py-2 pr-4">
                         {order.width}cm x {order.height}cm
                       </td>
                       <td className="py-2 pr-4">
-                        {new Date(order.createdAt).toLocaleDateString()}
+                        {new Date(order.created_at).toLocaleDateString()}
                       </td>
                     </tr>
                   ))

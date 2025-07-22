@@ -115,7 +115,7 @@ const AdminOrdersPage = () => {
           </thead>
           <tbody>
             {filteredOrders.map((order) => (
-              <tr key={order._id}>
+              <tr key={order.id}>
                 <td className="border px-4 py-2">{order.name}</td>
                 <td className="border px-4 py-2">{order.phone}</td>
                 <td className="border px-4 py-2">{order.address}</td>
@@ -131,14 +131,14 @@ const AdminOrdersPage = () => {
                   <div className="flex space-x-2">
                     {!order.completed && (
                       <button
-                        onClick={() => handleComplete(order._id)}
+                        onClick={() => handleComplete(order.id)}
                         className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded"
                       >
                         Complete
                       </button>
                     )}
                     <button
-                      onClick={() => handleDelete(order._id)}
+                      onClick={() => handleDelete(order.id)}
                       className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded"
                     >
                       Delete
