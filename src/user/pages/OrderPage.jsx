@@ -19,16 +19,29 @@ const OrderPage = () => {
   });
   const [showSuccess, setShowSuccess] = useState(false);
 
-  // ✅ Fetch single product from backend
   useEffect(() => {
     const fetchProduct = async () => {
+      if (!id) {
+        console.error('Product ID is missing in URL');
+        setLoading(false);
+        return;
+      }
+
       try {
+        console.log('Fetching product with ID:', id);
         const res = await fetch(`/api/products/${id}`);
+
+        // Check for bad content-type
+        const contentType = res.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          throw new Error('Received non-JSON response. Possibly HTML (404).');
+        }
+
         const data = await res.json();
         if (res.ok) {
           setProduct(data);
         } else {
-          console.error(data.message);
+          console.error('Failed to fetch product:', data.message);
         }
       } catch (err) {
         console.error('Error fetching product:', err);
@@ -89,23 +102,21 @@ const OrderPage = () => {
 
         <div className="flex flex-col md:flex-row gap-8 mb-10">
           <img
-            src={`/images/${product.image || 'curtain.webp'}`}
+            src={product.image ? `/images/${product.image}` : '/images/curtain.webp'}
             alt={product.name}
             className="w-full md:w-1/2 h-64 object-cover rounded-xl"
           />
           <div>
-  <h2 className="text-2xl font-semibold">{product.name}</h2>
-
-  <p className="mt-2">
-    {product.description && product.description.trim()
-      ? product.description
-      : 'No description available.'}
-  </p>
-
-  <p className="mt-4 font-bold text-xl">
-    RM {Number(product.price_per_meter_myr) ? Number(product.price_per_meter_myr).toFixed(2) : 'N/A'}
-  </p>
-</div>
+            <h2 className="text-2xl font-semibold">{product.name}</h2>
+            <p className="mt-2">
+              {product.description && product.description.trim()
+                ? product.description
+                : 'No description available.'}
+            </p>
+            <p className="mt-4 font-bold text-xl">
+              RM {Number(product.price_per_meter_myr) ? Number(product.price_per_meter_myr).toFixed(2) : 'N/A'}
+            </p>
+          </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
