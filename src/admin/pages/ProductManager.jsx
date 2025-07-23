@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
 import { motion } from 'framer-motion';
 import { Pencil, Trash2 } from 'lucide-react';
@@ -12,14 +12,11 @@ const ProductManager = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-  const fetchProducts = async () => {
+  const fetchProducts = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
-
-      const { data } = await axios.get('/api/admin/products', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      const { data } = await axios.get('/api/products', {
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       if (!Array.isArray(data)) {
@@ -31,7 +28,6 @@ const ProductManager = () => {
         const match = productList.find(
           (p) => p.name.trim().toLowerCase() === prod.name.trim().toLowerCase()
         );
-
         let image = match?.image || 'curtain.webp';
 
         if (prod.name.trim().toLowerCase() === 'curtains') {
@@ -48,23 +44,20 @@ const ProductManager = () => {
     } catch (err) {
       console.error('Failed to fetch products:', err);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchProducts();
-  }, []);
+  }, [fetchProducts]);
 
   const handleDelete = async (id) => {
     try {
       const token = localStorage.getItem('token');
-
-      await axios.delete(`/api/admin/products/${id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      await axios.delete(`/api/products/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
       });
 
-      setProducts((prev) => prev.filter((p) => p.id !== id));
+      setProducts((prev) => prev.filter((p) => p._id !== id));
       setShowDeleteModal(false);
     } catch (err) {
       console.error('Failed to delete product:', err);
@@ -74,20 +67,17 @@ const ProductManager = () => {
   const handleEditSubmit = async (updatedProduct) => {
     try {
       const token = localStorage.getItem('token');
-
       await axios.put(
-        `/api/admin/products/${updatedProduct.id}`,
+        `/api/products/${updatedProduct._id}`,
         updatedProduct,
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
 
       setProducts((prev) =>
         prev.map((p) =>
-          p.id === updatedProduct.id ? { ...p, ...updatedProduct } : p
+          p._id === updatedProduct._id ? { ...p, ...updatedProduct } : p
         )
       );
       setShowEditModal(false);
@@ -103,7 +93,7 @@ const ProductManager = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {products.map((product, index) => (
           <motion.div
-            key={product.id}
+            key={product._id}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.05 }}
@@ -165,7 +155,7 @@ const ProductManager = () => {
         <ConfirmDeleteModal
           productName={selectedProduct.name}
           onCancel={() => setShowDeleteModal(false)}
-          onConfirm={() => handleDelete(selectedProduct.id)}
+          onConfirm={() => handleDelete(selectedProduct._id)}
         />
       )}
     </div>

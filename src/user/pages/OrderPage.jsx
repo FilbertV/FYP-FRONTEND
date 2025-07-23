@@ -1,13 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import productList from '../data/productList';
 import Topbar from '../components/Topbar';
 import { motion } from 'framer-motion';
 
 const OrderPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const product = productList.find((p) => p.id === parseInt(id));
+
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     name: '',
     address: '',
@@ -16,8 +17,28 @@ const OrderPage = () => {
     height: '',
     notes: '',
   });
-
   const [showSuccess, setShowSuccess] = useState(false);
+
+  // ✅ Fetch single product from backend
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        const res = await fetch(`/api/products/${id}`);
+        const data = await res.json();
+        if (res.ok) {
+          setProduct(data);
+        } else {
+          console.error(data.message);
+        }
+      } catch (err) {
+        console.error('Error fetching product:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProduct();
+  }, [id]);
 
   const handleChange = (e) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -51,6 +72,7 @@ const OrderPage = () => {
     }
   };
 
+  if (loading) return <div className="p-10 text-center">Loading...</div>;
   if (!product) return <div className="p-10 text-center">Product not found</div>;
 
   return (
@@ -67,15 +89,23 @@ const OrderPage = () => {
 
         <div className="flex flex-col md:flex-row gap-8 mb-10">
           <img
-            src={`/images/${product.image}`}
+            src={`/images/${product.image || 'curtain.webp'}`}
             alt={product.name}
             className="w-full md:w-1/2 h-64 object-cover rounded-xl"
           />
           <div>
-            <h2 className="text-2xl font-semibold">{product.name}</h2>
-            <p className="mt-2">{product.description}</p>
-            <p className="mt-4 font-bold text-xl">RM {product.price}</p>
-          </div>
+  <h2 className="text-2xl font-semibold">{product.name}</h2>
+
+  <p className="mt-2">
+    {product.description && product.description.trim()
+      ? product.description
+      : 'No description available.'}
+  </p>
+
+  <p className="mt-4 font-bold text-xl">
+    RM {Number(product.price_per_meter_myr) ? Number(product.price_per_meter_myr).toFixed(2) : 'N/A'}
+  </p>
+</div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -135,8 +165,10 @@ const OrderPage = () => {
       {showSuccess && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
           <div className="bg-white rounded-2xl px-6 py-8 text-center shadow-lg">
-            <h2 className="text-2xl font-bold text-green-600 mb-2">Order Successful!</h2>
-            <p className="text-gray-600">Thankyou for Ordering!</p>
+            <h2 className="text-2xl font-bold text-green-600 mb-2">
+              Order Successful!
+            </h2>
+            <p className="text-gray-600">Thank you for ordering!</p>
           </div>
         </div>
       )}

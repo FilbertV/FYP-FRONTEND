@@ -10,12 +10,11 @@ const AdminOrdersPage = () => {
   const fetchOrders = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get('/api/admin/orders', {
+      const res = await axios.get('/api/orders', {
         headers: { Authorization: `Bearer ${token}` },
       });
 
       const data = res.data;
-
       if (!Array.isArray(data)) {
         console.error('Expected array, got:', data);
         setOrders([]);
@@ -36,7 +35,7 @@ const AdminOrdersPage = () => {
   const handleDelete = async (id) => {
     try {
       const token = localStorage.getItem('token');
-      await axios.delete(`/api/admin/orders/${id}`, {
+      await axios.delete(`/api/orders/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -52,7 +51,7 @@ const AdminOrdersPage = () => {
   const handleComplete = async (id) => {
     try {
       const token = localStorage.getItem('token');
-      await axios.patch(`/api/admin/orders/${id}`, {}, {
+      await axios.patch(`/api/orders/${id}`, {}, {
         headers: { Authorization: `Bearer ${token}` },
       });
 

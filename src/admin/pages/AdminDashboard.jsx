@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Package, ClipboardList, AlertTriangle } from "lucide-react";
 import axios from "axios";
@@ -15,12 +15,13 @@ const AdminDashboard = () => {
   const fetchData = async () => {
     try {
       const token = localStorage.getItem("token");
+      const baseURL = "http://localhost:5000";
 
       const [prodRes, orderRes] = await Promise.all([
-        axios.get("/api/admin/products", {
+        axios.get(`${baseURL}/api/products`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        axios.get("/api/admin/orders", {
+        axios.get(`${baseURL}/api/orders`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
       ]);
@@ -87,7 +88,7 @@ const AdminDashboard = () => {
         </motion.div>
       </div>
 
-      {/* LOW STOCK LIST */}
+      {/* LOW STOCK TABLE */}
       {lowStock.length > 0 && (
         <div className="mb-10">
           <h2 className="text-xl font-semibold mb-3 text-red-600">

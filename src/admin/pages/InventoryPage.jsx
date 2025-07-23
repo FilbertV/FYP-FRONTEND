@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { Pencil, Check, X, CheckCircle } from "lucide-react";
@@ -10,10 +10,12 @@ const InventoryPage = () => {
   const [editedStock, setEditedStock] = useState({});
   const [updatedProductId, setUpdatedProductId] = useState(null);
 
-  const fetchProducts = async () => {
+  const fetchProducts = useCallback(async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get("/api/admin/products", {
+      const baseURL = "http://localhost:5000"; // Adjust if needed
+
+      const response = await axios.get(`${baseURL}/api/products`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -32,11 +34,11 @@ const InventoryPage = () => {
       console.error("Error fetching products:", error);
       toast.error("Failed to fetch products");
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchProducts();
-  }, []);
+  }, [fetchProducts]);
 
   const handleEditClick = (productId, currentStock) => {
     setEditingProductId(productId);
@@ -58,7 +60,7 @@ const InventoryPage = () => {
       const token = localStorage.getItem("token");
 
       await axios.put(
-        `/api/admin/products/${productId}`,
+        `http://localhost:5000/api/products/${productId}`,
         { stock: newStock },
         {
           headers: {
